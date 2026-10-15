@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="タクシー乗務員向け営業支援アプリのUI試作品">
+  <title>タクシー営業支援｜UI試作品</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">メインコンテンツへ移動</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="メインナビゲーション">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">DP</span>
+        <span><strong>タクシー営業支援</strong><small>UI試作品・名称未決定</small></span>
+      </div>
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="home" aria-current="page"><span aria-hidden="true">⌂</span>ホーム</button>
+        <button class="nav-item" data-view="reports"><span aria-hidden="true">▤</span>日報</button>
+        <button class="nav-item" data-view="sales"><span aria-hidden="true">￥</span>売上</button>
+        <button class="nav-item" data-view="analytics"><span aria-hidden="true">⌁</span>分析</button>
+        <button class="nav-item" data-view="intelligence"><span aria-hidden="true">◉</span>営業情報</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" data-view="settings"><span aria-hidden="true">⚙</span>設定</button>
+        <div class="prototype-note"><strong>UI PROTOTYPE</strong><span>正式な保存・計算・予測は行いません</span></div>
+      </div>
+    </aside>
+
+    <div class="app-body">
+      <div class="ticker" id="ticker" role="region" aria-label="営業情報テロップ">
+        <span class="ticker-label">サンプル情報</span>
+        <div class="ticker-window">
+          <div class="ticker-track">
+            <span>イベント｜18:30 架空マリンアリーナ 公演終了予定</span>
+            <span>需要予測（参考）｜19時台 博多駅周辺で需要上昇のサンプル</span>
+            <span>高額運賃が期待できる場所（参考）｜21時台 天神エリアの架空サンプル</span>
+          </div>
+        </div>
+        <button class="ticker-close" id="ticker-close" aria-label="テロップを非表示">×</button>
+      </div>
+
+      <header class="topbar">
+        <div><p class="eyebrow" id="page-eyebrow">TODAY'S OVERVIEW</p><h1 id="page-title">ホーム</h1></div>
+        <div class="topbar-actions">
+          <span class="sample-pill">すべて架空のサンプル</span>
+          <button class="icon-button" data-view="settings" aria-label="設定を開く">⚙</button>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <section class="view active" id="view-home" data-title="ホーム" data-eyebrow="TODAY'S OVERVIEW">
+          <div class="hero-grid">
+            <article class="hero-card dark-card compact-hero">
+              <div class="section-heading"><div><span class="overline">TODAY'S GUIDE</span><h2>今日のおすすめ営業情報</h2></div><span class="status-chip sample">サンプル</span></div>
+              <div class="demand-focus"><span class="time">19:00–21:00</span><strong>博多駅・天神エリア</strong><p>イベント終了と到着便が重なる想定です。参考情報としてご利用ください。</p></div>
+              <div class="hero-actions"><button class="button light" data-view="intelligence">営業情報を見る</button><span>外部データ未接続</span></div>
+            </article>
+            <article class="hero-card accent-card compact-hero">
+              <div class="section-heading"><div><span class="overline">HIGH FARE AREAS</span><h2>高額運賃が期待できる場所</h2></div><span class="status-chip sample">参考</span></div>
+              <div class="area-rank"><span>20時台</span><div><strong>福岡空港 周辺</strong><small>金曜日に郊外方面の利用が増える架空傾向</small></div></div>
+              <div class="area-rank"><span>22時台</span><div><strong>中洲・天神</strong><small>イベント日に長距離利用が増える架空傾向</small></div></div>
+              <button class="text-link" data-view="analytics">分析画面で詳しく見る →</button>
+            </article>
+          </div>
+
+          <section class="content-section">
+              <div class="section-heading"><div><span class="overline">MONTHLY SALES</span><h2>今月の売上</h2></div><span class="sample-pill">サンプル数値</span></div>
+            <div class="metric-grid four">
+              <article class="metric-card"><span>今月の売上</span><strong>¥684,200</strong><small class="positive">前月比 +6.8%（サンプル）</small></article>
+              <article class="metric-card"><span>出勤日数</span><strong>12<em>日</em></strong><small>予定 20日（サンプル）</small></article>
+              <article class="metric-card"><span>1勤務平均</span><strong>¥57,017</strong><small>正式計算ではありません</small></article>
+              <article class="metric-card"><span>乗車回数</span><strong>286<em>回</em></strong><small>平均 23.8回／勤務</small></article>
+            </div>
+          </section>
+
+          <div class="split-grid">
+            <section class="panel">
+              <div class="section-heading"><div><span class="overline">TODAY'S SCHEDULE</span><h2>今日の予定一覧</h2></div><button class="text-link" data-view="intelligence">すべて見る</button></div>
+              <div class="timeline-list">
+                <div class="timeline-item"><time>17:40</time><i class="dot blue"></i><div><strong>航空便到着（架空）</strong><p>国内線 3便・到着人数はサンプル</p></div></div>
+                <div class="timeline-item"><time>18:30</time><i class="dot orange"></i><div><strong>イベント終了予定（架空）</strong><p>マリンアリーナ・約8,000人のサンプル</p></div></div>
+                <div class="timeline-item"><time>20:05</time><i class="dot green"></i><div><strong>新幹線到着（架空）</strong><p>博多駅・利用者数は未接続</p></div></div>
+              </div>
+            </section>
+            <section class="panel quick-panel">
+              <div class="section-heading"><div><span class="overline">QUICK ACTIONS</span><h2>よく使う操作</h2></div></div>
+              <button class="quick-action" id="home-new-report"><span class="quick-icon">＋</span><span><strong>日報を登録</strong><small>本日の営業記録を入力</small></span><b>→</b></button>
+              <button class="quick-action" data-view="analytics"><span class="quick-icon">⌁</span><span><strong>営業分析を見る</strong><small>曜日・時間帯・エリア別</small></span><b>→</b></button>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-reports" data-title="日報管理" data-eyebrow="DAILY REPORTS">
+          <div class="page-actions"><div><p class="lead">営業記録を確認・整理します。表示内容はすべて試作用です。</p></div><button class="button primary" id="open-report-form">＋ 日報を登録</button></div>
+          <div class="filter-bar report-filters">
+            <label class="search-field"><span>キーワード検索</span><input id="report-search" type="search" placeholder="例：確認済み、手入力"></label>
+            <label><span>日付を選択</span><input id="report-date" type="date"></label>
+            <label><span>確認状態</span><select id="report-status"><option value="all">すべて</option><option value="確認済み">確認済み</option><option value="要確認">要確認</option></select></label>
+            <label><span>入力方法</span><select id="report-method"><option value="all">すべて</option><option value="写真">写真</option><option value="手入力">手入力</option></select></label>
+          </div>
+          <div class="mobile-cards" id="report-cards"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>営業日</th><th>確認状態</th><th>入力方法</th><th>売上（サンプル）</th><th>乗車</th><th>現収</th><th>未収</th><th><span class="sr-only">操作</span></th></tr></thead>
+              <tbody id="report-table"></tbody>
+            </table>
+          </div>
+          <p class="empty-state hidden" id="report-empty">条件に一致するサンプル日報はありません。</p>
+        </section>
+
+        <section class="view" id="view-sales" data-title="売上・給与" data-eyebrow="SALES & PAYROLL">
+          <div class="notice info"><strong>サンプル表示</strong><span>数値はすべて架空です。正式な売上計算・給与計算は行っていません。</span></div>
+          <div class="toolbar-row">
+            <div class="segmented" role="tablist" aria-label="売上と給与の表示切り替え"><button class="active" data-sales-tab="sales" aria-selected="true">売上</button><button data-sales-tab="payroll" aria-selected="false">給与</button></div>
+            <div class="month-switcher" aria-label="表示月"><button id="month-prev" aria-label="前の月">‹</button><strong id="sales-month">2026年10月</strong><button id="month-next" aria-label="次の月">›</button></div>
+          </div>
+          <div id="sales-content">
+          <section class="goal-card"><div><span class="overline">MONTHLY GOAL</span><h2>今月の売上目標</h2><p>目標 ¥800,000 に対して <strong>¥684,200</strong>（サンプル）</p></div><div class="goal-progress" aria-label="売上目標の達成率85.5%"><i style="--progress:85.5%"></i></div><b>85.5%</b></section>
+          <div class="metric-grid four">
+            <article class="metric-card featured"><span>月別売上</span><strong>¥684,200</strong><small class="positive">前月比 +6.8%</small></article>
+            <article class="metric-card"><span>出勤日数</span><strong>12<em>日</em></strong><small>サンプル集計</small></article>
+            <article class="metric-card"><span>乗車回数</span><strong>286<em>回</em></strong><small>サンプル集計</small></article>
+            <article class="metric-card"><span>平均客単価</span><strong>¥2,392</strong><small>サンプル参考値</small></article>
+          </div>
+          <div class="split-grid sales-layout">
+            <section class="panel"><div class="section-heading"><div><span class="overline">DAILY SALES</span><h2>日別売上</h2></div><span class="sample-pill">サンプル</span></div><div class="bar-chart" id="daily-sales-chart" aria-label="日別売上のサンプル棒グラフ"></div></section>
+            <section class="panel"><div class="section-heading"><div><span class="overline">PAYMENT BREAKDOWN</span><h2>売上の支払区分</h2></div></div><div class="donut-row"><div class="donut" aria-label="現収82%、未収18%"><span>現収<strong>82%</strong></span></div><div class="legend"><span><i class="legend-dot navy"></i>現収 <b>¥561,000</b></span><span><i class="legend-dot cyan"></i>未収 <b>¥123,200</b></span></div></div><div class="mini-stats"><span>営業距離<strong>1,284 km</strong></span><span>走行距離<strong>2,086 km</strong></span></div></section>
+          </div>
+          <div class="split-grid">
+            <section class="panel"><div class="section-heading"><div><span class="overline">MONTHLY COMPARISON</span><h2>過去月との比較</h2></div></div><div class="comparison"><div><span>8月</span><i style="--size:72%"></i><b>¥598,400</b></div><div><span>9月</span><i style="--size:78%"></i><b>¥640,800</b></div><div class="current"><span>10月</span><i style="--size:84%"></i><b>¥684,200</b></div></div></section>
+            <section class="panel"><div class="section-heading"><div><span class="overline">AVERAGE SALES</span><h2>1勤務あたりの平均売上</h2></div><span class="sample-pill">サンプル</span></div><p class="large-number">¥57,017</p><p class="lead">出勤12日を想定した参考表示です。</p></section>
+          </div>
+          </div>
+          <section id="payroll-content" class="panel payroll-tab hidden"><span class="status-chip warning">概算表示</span><div><span class="overline">PAYROLL</span><h2>給与計算は試作段階です</h2><p>締め日と賃率を設定するUIのみ用意しています。正式な給与計算は行いません。</p><small class="payroll-caution">※表示される給与は概算です。実際の支給額とは異なる場合があります。</small></div><button class="button secondary" data-view="settings" data-settings="payroll">給与設定のUIを見る</button></section>
+        </section>
+
+        <section class="view" id="view-analytics" data-title="営業分析" data-eyebrow="BUSINESS ANALYTICS">
+          <div class="page-actions"><p class="lead">降車時刻を基準にした架空のサンプル分析です。</p><span class="sample-pill">正式な分析・予測ではありません</span></div>
+          <div class="analysis-period"><strong>分析期間</strong><div class="segmented" role="tablist" aria-label="分析期間"><button class="active" data-period="7">過去7日間</button><button data-period="30">30日間</button><button data-period="90">90日間</button><button data-period="custom">期間指定</button></div><div class="custom-period hidden" id="custom-period"><label>開始日<input type="date"></label><label>終了日<input type="date"></label></div></div>
+          <div class="segmented" role="tablist" aria-label="分析軸">
+            <button class="active" role="tab" aria-selected="true" data-analysis="weekday">曜日別</button><button role="tab" aria-selected="false" data-analysis="time">時間帯別</button><button role="tab" aria-selected="false" data-analysis="area">エリア別</button>
+          </div>
+          <div class="metric-grid three"><article class="metric-card"><span>乗車回数</span><strong id="analytics-rides">286<em>回</em></strong><small>サンプル期間合計</small></article><article class="metric-card"><span>平均客単価</span><strong id="analytics-average">¥2,392</strong><small>サンプル参考値</small></article><article class="metric-card"><span>高額運賃が多い条件</span><strong id="analytics-trend">金曜 夜</strong><small>判定基準未設定</small></article></div>
+          <div class="split-grid analytics-layout">
+            <section class="panel chart-panel"><div class="section-heading"><div><span class="overline" id="chart-overline">WEEKDAY SALES</span><h2 id="chart-title">曜日別売上</h2></div><span class="sample-pill">サンプル</span></div><div class="svg-chart" id="analytics-chart"></div><p class="chart-caption">日報の記録時刻は<strong>降車時刻</strong>です。乗車時刻として扱っていません。</p></section>
+            <section class="panel"><div class="section-heading"><div><span class="overline">HIGH FARE TRENDS</span><h2>高額運賃になった利用の傾向</h2></div><span class="status-chip warning">基準未設定</span></div><div class="trend-details"><span>曜日<strong>金曜日</strong></span><span>時間帯<strong>20–22時</strong></span><span>エリア<strong>福岡空港周辺</strong></span><span>平均運賃<strong>¥8,420</strong></span><span>該当件数<strong>8件</strong></span></div><div class="notice compact"><span>すべて架空です。金額基準・分析方法は未確定です。</span></div></section>
+          </div>
+          <section class="panel insight-panel"><div class="section-heading"><div><span class="overline">SALES TIPS</span><h2>営業のヒント</h2></div><span class="sample-pill">サンプル分析</span></div><p id="sales-tip">金曜日の20時から22時は、福岡空港周辺で平均運賃が高い傾向のサンプルがあります。実際の営業判断では最新情報も確認してください。</p><button class="text-link" id="toggle-empty-analysis">データ不足時の表示を確認</button><div id="analysis-empty" class="empty-state hidden"><strong>分析に必要なデータが不足しています</strong><p>日報が蓄積されると、曜日・時間帯・エリア別の傾向を表示します。</p></div></section>
+          <section class="panel"><div class="section-heading"><div><span class="overline">ROUTE PAIRS</span><h2>乗車地・降車地の組み合わせ</h2></div><span class="sample-pill">サンプル</span></div><div class="route-list"><div><span>博多駅</span><i>→</i><strong>福岡空港</strong><b>18回</b></div><div><span>天神</span><i>→</i><strong>博多駅</strong><b>15回</b></div><div><span>中洲</span><i>→</i><strong>百道</strong><b>11回</b></div></div></section>
+        </section>
+
+        <section class="view" id="view-intelligence" data-title="営業情報・需要予測" data-eyebrow="SALES INTELLIGENCE">
+          <div class="notice info"><strong>すべて架空のサンプル情報</strong><span>参考情報です。外部データ未接続のため、実際の運行判断には使用できません。</span></div>
+          <div class="segmented wrap" role="tablist" aria-label="営業情報カテゴリ" id="intel-tabs">
+            <button class="active" data-category="all">すべて</button><button data-category="event">イベント</button><button data-category="flight">航空便</button><button data-category="train">新幹線</button><button data-category="cruise">クルーズ船</button><button data-category="forecast">予測</button>
+          </div>
+          <div class="intel-grid" id="intel-grid"></div>
+          <p class="source-note">※ 表示中の名称・時刻・人数・傾向はすべてUI確認用の架空データです。</p>
+        </section>
+
+        <section class="view" id="view-settings" data-title="設定" data-eyebrow="APP SETTINGS">
+          <div class="notice warning"><strong>設定UIの試作品</strong><span>変更内容は保存されず、計算・分析・データ管理には反映されません。</span></div>
+          <section class="settings-accordion" id="settings-accordion" aria-label="設定項目"></section>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="モバイルナビゲーション">
+        <button class="active" data-view="home"><span>⌂</span>ホーム</button><button data-view="reports"><span>▤</span>日報</button><button data-view="sales"><span>￥</span>売上</button><button data-view="analytics"><span>⌁</span>分析</button><button data-view="intelligence"><span>◉</span>営業情報</button>
+      </nav>
+    </div>
+  </div>
+
+  <div class="modal registration-modal" id="report-modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-dialog large" role="dialog" aria-modal="true" aria-labelledby="report-modal-title">
+      <header><div><span class="overline">DAILY REPORT</span><h2 id="report-modal-title">日報を登録</h2></div><button class="icon-button" data-close-modal aria-label="閉じる">×</button></header>
+      <div class="modal-body" id="registration-body">
+        <div class="notice compact"><span>UI試作品です。入力内容や選択した写真は保存・送信されません。</span></div>
+        <div class="registration-methods" id="registration-methods"><button data-register-method="photo"><span>▧</span><strong>写真から登録</strong><small>日報とメーターレシートを選択</small></button><button data-register-method="manual"><span>✎</span><strong>手入力で登録</strong><small>乗車記録を1件ずつ入力</small></button></div>
+        <div id="registration-workspace"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="detail-modal" hidden><div class="modal-backdrop" data-close-modal></div><section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="detail-title"><header><div><span class="overline">DETAIL</span><h2 id="detail-title">詳細</h2><p class="modal-subtitle hidden" id="detail-date"></p></div><button class="icon-button" data-close-modal aria-label="閉じる">×</button></header><div class="modal-body" id="detail-content"></div></section></div>
+  <div class="modal" id="delete-modal" hidden><div class="modal-backdrop" data-close-modal></div><section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"><header><div><span class="overline">DELETE CONFIRMATION</span><h2 id="delete-modal-title">削除の確認</h2></div><button class="icon-button" data-close-modal aria-label="閉じる">×</button></header><div class="modal-body" id="delete-modal-content"></div></section></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>
