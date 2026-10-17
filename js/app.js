@@ -14,6 +14,39 @@ const intel = [
   {id:'p2',category:'forecast',label:'高額運賃情報',sort:2100,time:'21:00–23:00',past:false,highFare:true,title:'天神エリアの利用傾向',desc:'長距離利用が増える想定の表示例です。',place:'天神',basis:'架空の日報データにおける曜日・時間帯傾向',note:'判定金額・分析方法は未設定です。'}
 ];
 
+const TODAY_INFO_RULES={eventStartLeadMinutes:60,eventEndLeadMinutes:30,eventPostEndMinutes:60,arrivalWindowMinutes:30};
+const TODAY_INFO_ORDER=['highFare','events','international','domestic','shinkansen','cruises'];
+const todayInfoSource={
+  highFare:{status:'sample',items:[{id:'fare-sample-01',boarding:'野芥周辺',alighting:'東平尾',predictedTime:'7:30頃（推定）',previousFare:'約6,000円',occurrences:'4回'}]},
+  events:{status:'sample',items:[
+    {id:'event-01',name:'〇〇アーティスト ライブ',facility:'マリンメッセ福岡',start:'18:00',end:'20:30',proximity:1},
+    {id:'event-02',name:'地域医療フォーラム',facility:'福岡国際会議場',start:'17:30',end:'19:30',proximity:2},
+    {id:'event-03',name:'秋の展示会',facility:'福岡国際センター',start:'10:00',end:'18:00',proximity:3},
+    {id:'event-04',name:'スポーツ交流大会',facility:'照葉積水ハウスアリーナ',start:'16:00',end:'19:00',proximity:4,outsideArea:true}
+  ]},
+  international:{status:'sample',items:[
+    {id:'intl-01',origin:'台北',airport:'福岡空港',arrival:'16:45',passengers:null},
+    {id:'intl-02',origin:'ソウル',airport:'福岡空港',arrival:'16:55',passengers:null},
+    {id:'intl-03',origin:'釜山',airport:'福岡空港',arrival:'17:05',passengers:null}
+  ]},
+  domestic:{status:'sample',items:[
+    {id:'dom-01',origin:'東京（羽田）',airport:'福岡空港',arrival:'16:50',passengers:null},
+    {id:'dom-02',origin:'大阪（伊丹）',airport:'福岡空港',arrival:'17:00',passengers:null},
+    {id:'dom-03',origin:'札幌（新千歳）',airport:'福岡空港',arrival:'17:10',passengers:null}
+  ]},
+  shinkansen:{status:'sample',items:[
+    {id:'train-01',train:'のぞみ99号',origin:'東京',station:'博多',terminal:'博多',arrival:'16:45',priority:1},
+    {id:'train-02',train:'のぞみ31号',origin:'東京',station:'博多',terminal:'博多',arrival:'16:52',priority:1},
+    {id:'train-03',train:'さくら557号',origin:'新大阪',station:'博多',terminal:'鹿児島中央',arrival:'16:58',priority:2},
+    {id:'train-04',train:'こだま849号',origin:'岡山',station:'博多',terminal:'博多',arrival:'17:08',priority:1}
+  ]},
+  cruises:{status:'sample',items:[
+    {id:'cruise-01',ship:'MSCベリッシマ',port:'博多港',arrival:'8:00',departure:'18:00',capacity:'約4,500人',capacityValue:4500},
+    {id:'cruise-02',ship:'オーシャン・ドリーム',port:'博多港',arrival:'9:00',departure:'19:00',capacity:'約2,000人',capacityValue:2000},
+    {id:'cruise-03',ship:'シーサイド・スター',port:'博多港',arrival:'10:00',departure:'20:00',capacity:'約1,200人',capacityValue:1200}
+  ]}
+};
+
 const secretQuestions=['初めて買った車は？','子供の頃のあだ名は？','好きだった学校の先生の名前は？','初めて飼ったペットの名前は？','思い出の旅行先は？','好きな食べ物は？'];
 let prototypeSecret={registered:false,questions:[]};
 
@@ -25,6 +58,8 @@ const charts={
 
 const pageMeta={home:['ホーム',"TODAY'S OVERVIEW"],reports:['日報管理','DAILY REPORTS'],sales:['売上・給与','SALES & PAYROLL'],analytics:['営業分析','BUSINESS ANALYTICS'],intelligence:['営業情報・需要予測','SALES INTELLIGENCE'],settings:['設定','APP SETTINGS']};
 let currentView='home', lastFocus=null;
+let recommendationIndex=0,recommendationTouchStart=null,visibleRecommendations=[];
+const handledHighFarePredictionIds=new Set();
 
 function switchView(view){
   if(!pageMeta[view]) return;
@@ -44,6 +79,38 @@ document.addEventListener('click',e=>{
 function openModal(id){lastFocus=document.activeElement;const modal=document.getElementById(id);modal.hidden=false;document.body.style.overflow='hidden';setTimeout(()=>modal.querySelector('button,input,select')?.focus(),20);}
 function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.hidden=true);document.body.style.overflow='';lastFocus?.focus();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModals();});
+
+function getTodayInfoPages(source=todayInfoSource){
+  const sorted={...source,events:{...source.events,items:[...source.events.items].sort((a,b)=>a.proximity-b.proximity)},international:{...source.international,items:[...source.international.items].sort((a,b)=>a.arrival.localeCompare(b.arrival))},domestic:{...source.domestic,items:[...source.domestic.items].sort((a,b)=>a.arrival.localeCompare(b.arrival))},shinkansen:{...source.shinkansen,items:[...source.shinkansen.items].sort((a,b)=>a.priority-b.priority||a.arrival.localeCompare(b.arrival))},cruises:{...source.cruises,items:[...source.cruises.items].sort((a,b)=>b.capacityValue-a.capacityValue)}};
+  const meta={highFare:['高額配車予想','high-fare','￥'],events:['イベント・学会情報','event','◇'],international:['国際線到着情報','international','国'],domestic:['国内線到着情報','domestic','内'],shinkansen:['新幹線到着情報','train','新'],cruises:['クルーズ船入港情報','cruise','船']};
+  return TODAY_INFO_ORDER.map(key=>({key,title:meta[key][0],tone:meta[key][1],icon:meta[key][2],...sorted[key]}));
+}
+function todayInfoEmptyMessage(key,status){if(status==='unavailable')return key==='highFare'?'GPS・日報データ未接続のため、高額配車予想を判定できません':'外部データ未接続のため、現在は対象情報を判定できません';return {highFare:'現在地周辺で、条件に一致する高額配車予想はありません',events:'現在、対象となるイベント情報はありません',international:'今後30分以内の国際線到着予定はありません',domestic:'今後30分以内の国内線到着予定はありません',shinkansen:'今後30分以内の新幹線到着予定はありません',cruises:'本日のクルーズ船入港予定はありません'}[key];}
+function todayInfoFields(key,item){if(key==='highFare')return [['乗車地',item.boarding],['降車地',item.alighting],['予想乗車時間',item.predictedTime],['過去の運賃',item.previousFare],['過去の乗車実績',item.occurrences]];if(key==='events')return [['イベント名',item.name],['会場',item.facility],['開始予定',item.start],['終了予定',item.end]];if(key==='international'||key==='domestic')return [['出発地',item.origin],['到着空港',item.airport],['到着予定時刻',item.arrival],['乗客数',item.passengers??'データ未取得']];if(key==='shinkansen')return [['列車名',item.train],['始発駅',item.origin],['到着駅',item.station],['終着駅',item.terminal],['到着予定',item.arrival]];return [['船名',item.ship],['入港場所',item.port],['入港予定',item.arrival],['出港予定',item.departure],['乗客定員',item.capacity],item.actualPassengers&&['実際の乗船人数',item.actualPassengers]].filter(Boolean);}
+function otherInfoLabel(page,count){return page.key==='events'?`他のイベント情報も見る（${count}件）`:page.key==='international'||page.key==='domestic'?`他の到着便も見る（${count}便）`:page.key==='shinkansen'?`他の到着列車も見る（${count}本）`:`他のクルーズ船も見る（${count}隻）`;}
+function renderTodayInfoPage(page,index,total){const item=page.items[0],extras=page.items.slice(1),empty=!item||page.status==='empty'||page.status==='unavailable';const body=empty?`<div class="today-info-empty"><strong>${todayInfoEmptyMessage(page.key,page.status)}</strong><span>${page.status==='unavailable'?'データ未取得':'取得済み・対象なし'}</span></div>`:`<dl class="today-info-grid">${todayInfoFields(page.key,item).map(([label,value],fieldIndex)=>`<div class="${fieldIndex===0?'primary-field':''}"><dt>${label}</dt><dd>${value}</dd></div>`).join('')}</dl>${page.key==='events'&&item.outsideArea?'<p class="today-info-note">設定交通圏外の情報です。</p>':''}`;const more=!empty&&extras.length&&page.key!=='highFare'?`<button class="button secondary today-info-more" type="button" data-today-info-more="${page.key}">${otherInfoLabel(page,extras.length)}</button>`:'';return `<article class="recommendation-card ${page.tone}" data-recommendation-slide="${index}" aria-roledescription="スライド" aria-label="${index+1}ページ目／${total}ページ"><div class="recommendation-main"><div class="recommendation-type"><span class="recommendation-icon" aria-hidden="true">${page.icon}</span><div><span>UI確認用・架空サンプル</span><h3>${page.title}</h3></div></div>${body}${more}<p class="sample-disclaimer">実際の運行情報・予測結果ではありません。</p></div></article>`;}
+function renderHomeRecommendations(source=todayInfoSource){visibleRecommendations=getTodayInfoPages(source);recommendationIndex=0;const track=document.getElementById('recommendation-track'),dots=document.getElementById('recommendation-dots');track.innerHTML=visibleRecommendations.map((page,index)=>renderTodayInfoPage(page,index,visibleRecommendations.length)).join('');dots.innerHTML=visibleRecommendations.map((page,index)=>`<button type="button" data-recommendation-dot="${index}" aria-label="${page.title}を表示"><span class="sr-only">${page.title}</span></button>`).join('');updateHomeRecommendation();bindHomeRecommendationEvents();}
+function updateHomeRecommendation(announce=false){
+  const track=document.getElementById('recommendation-track');if(!track)return;track.style.transform=`translateX(-${recommendationIndex*100}%)`;
+  document.querySelectorAll('[data-recommendation-slide]').forEach((slide,index)=>{const active=index===recommendationIndex;slide.setAttribute('aria-hidden',String(!active));slide.inert=!active;slide.querySelectorAll('button').forEach(button=>button.tabIndex=active?0:-1);});
+  document.querySelectorAll('[data-recommendation-dot]').forEach((dot,index)=>{const active=index===recommendationIndex;dot.classList.toggle('active',active);active?dot.setAttribute('aria-current','true'):dot.removeAttribute('aria-current');});
+  if(announce&&visibleRecommendations.length)document.getElementById('recommendation-status').textContent=`${recommendationIndex+1}ページ目、${visibleRecommendations[recommendationIndex].title}`;
+}
+function showRecommendation(index,announce=false){if(visibleRecommendations.length<2)return;recommendationIndex=(index+visibleRecommendations.length)%visibleRecommendations.length;updateHomeRecommendation(announce);}
+function bindHomeRecommendationEvents(){
+  const root=document.getElementById('recommendation-carousel');if(!root||root.dataset.bound)return;root.dataset.bound='true';
+  document.getElementById('recommendation-dots').addEventListener('click',e=>{const dot=e.target.closest('[data-recommendation-dot]');if(dot)showRecommendation(Number(dot.dataset.recommendationDot),true);});
+  root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();showRecommendation(recommendationIndex-1,true);}if(e.key==='ArrowRight'){e.preventDefault();showRecommendation(recommendationIndex+1,true);}});
+  root.addEventListener('touchstart',e=>{const t=e.changedTouches[0];recommendationTouchStart={x:t.clientX,y:t.clientY};},{passive:true});
+  root.addEventListener('touchend',e=>{const start=recommendationTouchStart,t=e.changedTouches[0];recommendationTouchStart=null;if(start){const dx=t.clientX-start.x,dy=t.clientY-start.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))showRecommendation(recommendationIndex+(dx<0?1:-1),true);}},{passive:true});
+  root.addEventListener('click',e=>{const more=e.target.closest('[data-today-info-more]');if(more)openTodayInfoList(more.dataset.todayInfoMore);});
+}
+function openTodayInfoList(key){
+  const page=visibleRecommendations.find(item=>item.key===key),items=page?.items.slice(1);if(!items?.length)return;const date=document.getElementById('detail-date');date.textContent='';date.classList.add('hidden');document.getElementById('detail-title').textContent=`${page.title}の一覧`;
+  document.getElementById('detail-content').innerHTML=`<div class="notice warning"><strong>UI確認用の架空サンプル</strong><span>実際の運行情報ではありません。</span></div><div class="today-info-list">${items.map(item=>`<article>${todayInfoFields(key,item).map(([label,value])=>`<div><span>${label}</span><strong>${value}</strong></div>`).join('')}</article>`).join('')}</div><div class="modal-actions"><button class="button secondary" data-close-modal>閉じる</button></div>`;openModal('detail-modal');
+}
+// 将来の予測結果を受け取る入口。試作品では自動実行せず、通常画面にテスト操作も置かない。
+function handleHighFarePrediction(result){const modalOpen=document.querySelector('.modal:not([hidden])');if(!result?.id||result.status!=='matched'||handledHighFarePredictionIds.has(result.id)||currentView!=='home'||document.visibilityState!=='visible'||modalOpen)return false;handledHighFarePredictionIds.add(result.id);showRecommendation(0,true);return true;}
 
 function statusClass(status){return status==='確認済み'?'sample':status==='要確認'?'warning':''}
 function formatDateJa(date){const d=new Date(`${date}T00:00:00`);return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`;}
@@ -102,7 +169,7 @@ document.getElementById('intel-grid').addEventListener('click',e=>openIntel(e.ta
 function openIntel(card){if(!card)return;const x=intel.find(i=>i.id===card.dataset.intel),date=document.getElementById('detail-date');date.textContent='';date.classList.add('hidden');document.getElementById('detail-title').textContent=x.title;document.getElementById('detail-content').innerHTML=`<div class="notice warning"><strong>サンプル・参考情報</strong><span>外部データ未接続</span></div><div class="detail-grid"><div class="detail-item"><span>カテゴリ</span><strong>${x.label}</strong></div><div class="detail-item"><span>時刻</span><strong>${x.time}</strong></div><div class="detail-item"><span>場所</span><strong>${x.place}</strong></div><div class="detail-item"><span>状態</span><strong>${x.past?'予定時刻経過・終了未確認':'予定情報'}</strong></div><div class="detail-item wide"><span>表示の根拠</span><strong>${x.basis}</strong></div></div><p>${x.note}</p><div class="modal-actions"><button class="button secondary" data-close-modal>閉じる</button></div>`;openModal('detail-modal');}
 
 const accordionSections=[
-  ['basic','01','基本設定','営業地域・データ削除用の合言葉'],['payroll','02','給与設定','締め日・賃率'],['report','03','日報の読み取り','日報・レシートの書式'],['analysis','04','営業分析','高額運賃の表示条件'],['information','05','営業情報の表示','事前表示時間・表示対象'],['display','06','画面の表示','文字サイズ・テーマ'],['data','07','データ管理','引き継ぎ・CSV・削除']
+  ['basic','01','基本設定','営業地域・交通圏・データ削除用の合言葉'],['payroll','02','給与設定','締め日・賃率'],['report','03','日報の読み取り','日報・レシートの書式'],['analysis','04','営業分析','高額運賃の表示条件'],['information','05','営業情報の表示','事前表示時間・表示対象'],['display','06','画面の表示','文字サイズ・テーマ'],['data','07','データ管理','引き継ぎ・CSV・削除']
 ];
 function renderUnifiedSettings(){
   document.getElementById('settings-accordion').innerHTML=accordionSections.map(([key,no,title,desc],i)=>`<article class="accordion-item ${i===0?'open':''}" data-section="${key}"><h2><button class="accordion-trigger" aria-expanded="${i===0}" aria-controls="settings-${key}" id="trigger-${key}"><span class="accordion-number">${no}</span><span><strong>${title}</strong><small>${desc}</small></span><i aria-hidden="true">⌄</i></button></h2><div class="accordion-panel" id="settings-${key}" role="region" aria-labelledby="trigger-${key}" ${i===0?'':'hidden'}>${settingsSectionHtml(key)}</div></article>`).join('');
@@ -114,6 +181,7 @@ function settingsSectionHtml(key){
 function bindUnifiedSettings(){
   document.querySelectorAll('.accordion-trigger').forEach(btn=>btn.addEventListener('click',()=>{const item=btn.closest('.accordion-item'),panel=document.getElementById(btn.getAttribute('aria-controls')),open=btn.getAttribute('aria-expanded')==='true';btn.setAttribute('aria-expanded',String(!open));item.classList.toggle('open',!open);panel.hidden=open;}));
   bindPayrollSettings();
+  bindTrafficAreaSettings();
   bindSecretSettings();
   bindInformationSettings();
   bindDisplaySettings();
@@ -126,11 +194,21 @@ function openSettingSection(key){
   const item=document.querySelector(`[data-section="${key}"]`);if(!item)return;const trigger=item.querySelector('.accordion-trigger'),panel=item.querySelector('.accordion-panel');trigger.setAttribute('aria-expanded','true');item.classList.add('open');panel.hidden=false;setTimeout(()=>item.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}),30);
 }
 const prefectures=['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+const trafficAreasByPrefecture={
+  '福岡県':[
+    {value:'fukuoka',label:'福岡交通圏'},
+    {value:'kitakyushu',label:'北九州交通圏'},
+    {value:'munakata',label:'宗像交通圏'},
+    {value:'keichiku',label:'京築交通圏'},
+    {value:'tagawa',label:'田川交通圏'},
+    {value:'chikuho',label:'筑豊交通圏'}
+  ]
+};
 function questionOptions(index){return `<option value="">質問を選択</option>${secretQuestions.map(q=>`<option value="${q}">${q}</option>`).join('')}`;}
-function basicSettingsHtml(){return `<div class="settings-stack"><div class="single-setting"><label class="setting-field">営業地域<select id="prefecture"><option value="" selected>未設定</option>${prefectures.map(p=>`<option>${p}</option>`).join('')}</select><small>営業地域に関係するイベント、空港、鉄道、クルーズなどの情報取得に使用します。日報の過去データを分析するための設定ではありません。</small></label></div><section class="settings-group secret-settings" id="secret-settings"><div class="section-heading"><div><h3>データ削除用の合言葉</h3><p class="lead">すべての日報データを削除するときの本人確認と誤操作防止に使用する予定です。</p></div><span class="status-chip warning" id="secret-status">未登録</span></div><div class="notice compact"><strong>試作品</strong><span>入力内容はこの画面を開いている間だけ保持され、保存・認証には使用されません。本番では回答を平文で保存しません。</span></div><div class="secret-grid">${[1,2,3].map(i=>`<div class="secret-row"><label class="setting-field">質問${i}<select class="secret-question" data-secret-index="${i}">${questionOptions(i)}</select></label><label class="setting-field">答え${i}<div class="password-field"><input class="secret-answer" type="password" inputmode="text" lang="ja" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="row-button toggle-secret" aria-label="答え${i}を表示">表示</button></div></label></div>`).join('')}</div><button type="button" class="button primary" id="register-secret">合言葉を登録する（試作）</button></section></div>`;}
+function basicSettingsHtml(){return `<div class="settings-stack"><div class="single-setting region-settings"><label class="setting-field">営業地域<select id="prefecture"><option value="" selected>未設定</option>${prefectures.map(p=>`<option>${p}</option>`).join('')}</select><small>営業地域に関係するイベント、空港、鉄道、クルーズなどの情報取得に使用します。日報の過去データを分析するための設定ではありません。</small></label><label class="setting-field">交通圏<select id="traffic-area" disabled aria-describedby="traffic-area-help"><option value="">営業地域を選択してください</option></select><small id="traffic-area-help">営業地域を選択すると、登録済みの交通圏候補を表示します。</small></label></div><section class="settings-group secret-settings" id="secret-settings"><div class="section-heading secret-heading"><div><h3>データ削除用の合言葉</h3><p class="lead">すべての日報データを削除するときの本人確認と誤操作防止に使用する予定です。</p></div><span class="status-chip warning" id="secret-status">未登録</span></div><div class="notice compact"><strong>試作品</strong><span>入力内容はこの画面を開いている間だけ保持され、保存・認証には使用されません。本番では回答を平文で保存しません。</span></div><div class="secret-grid">${[1,2,3].map(i=>`<div class="secret-row"><label class="setting-field">質問${i}<select class="secret-question" data-secret-index="${i}">${questionOptions(i)}</select></label><label class="setting-field">答え${i}<div class="password-field"><input class="secret-answer" type="password" inputmode="text" lang="ja" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="row-button toggle-secret" aria-label="答え${i}を表示">表示</button></div></label></div>`).join('')}</div><button type="button" class="button primary" id="register-secret">合言葉を登録する（試作）</button></section></div>`;}
 function reportSettingsHtml(){return `<article class="setting-feature-card"><div class="setting-feature-icon" aria-hidden="true">▧</div><div><span class="overline">READING FORMAT</span><h3>日報・レシートの読み取り設定</h3><p>お使いの日報と日計レシートの書式を登録し、必要な情報の読み取り箇所を設定します。</p><div class="notice compact"><strong>未実装</strong><span>撮影、画像アップロード、OCR解析、読み取り箇所の指定、書式保存はまだ利用できません。</span></div><button type="button" class="button primary" id="open-reading-settings">読み取り設定を開く</button></div></article>`;}
 function analysisSettingsHtml(){return `<div class="analysis-settings"><label class="setting-field">高額運賃の判定金額<div class="unit-input high-fare-input"><input id="high-fare-threshold" type="text" inputmode="numeric" autocomplete="off" placeholder="例：5,000" aria-label="高額運賃の判定金額"><span>円以上</span></div><small>何円以上の乗車を高額運賃として扱うか指定します。未入力の場合は未設定として扱い、初期金額は設定しません。</small></label><label class="setting-field">高額運賃の最低発生回数<select id="minimum-high-fare-count">${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${i===0?'selected':''}>${i+1}回</option>`).join('')}</select><small>指定した金額以上の乗車実績が、同じ地域・曜日・時間帯に設定回数以上ある場合、高額運賃チャンス情報の表示対象にします。</small></label><div class="notice compact"><strong>設定UIのみ</strong><span>過去データの検索、回数判定、現在地との照合、情報表示への反映は実装していません。</span></div></div>`;}
-function informationSettingsHtml(){const items=[['events','イベント・学会情報'],['flights','航空機の到着情報'],['trains','新幹線の到着情報'],['cruises','クルーズ船の入港情報'],['highfare','高額運賃チャンス予測']];return `<div class="settings-stack"><label class="setting-field single-setting">営業情報の事前表示時間<select id="advance-time">${[15,30,45,60,75,90,105,120].map(v=>`<option value="${v}" ${v===30?'selected':''}>${v}分前</option>`).join('')}</select><small>5種類すべてのテロップ情報に共通する試作設定です。実際の表示制御には反映されません。</small></label><div class="switch-group"><div class="switch-row master-switch"><span><strong>すべての情報を表示</strong><small>下の5項目を一括でON・OFFします。</small></span>${switchHtml('all-info',true)}</div>${items.map(([id,label])=>`<div class="switch-row"><span><strong>${label}</strong><small>画面上部のテロップに表示する情報</small></span>${switchHtml(`info-${id}`,true,'info-toggle')}</div>`).join('')}</div><div class="notice compact"><strong>表示対象について</strong><span>この設定は上部テロップだけを対象とします。「営業情報」ページには設定に関係なく当日の情報をすべて表示します。</span></div></div>`;}
+function informationSettingsHtml(){const items=[['events','イベント・学会情報'],['domestic','国内線の到着情報'],['international','国際線の到着情報'],['trains','新幹線の到着情報'],['cruises','クルーズ船の入港情報'],['highfare','高額運賃チャンス予測']];return `<div class="settings-stack"><label class="setting-field single-setting">営業情報の事前表示時間<select id="advance-time">${[15,30,45,60,75,90,105,120].map(v=>`<option value="${v}" ${v===30?'selected':''}>${v}分前</option>`).join('')}</select><small>6種類すべてのテロップ情報に共通する試作設定です。実際の表示制御には反映されません。</small></label><div class="switch-group"><div class="switch-row master-switch"><span><strong>すべての情報を表示</strong><small>下の6項目を一括でON・OFFします。</small></span>${switchHtml('all-info',true)}</div>${items.map(([id,label])=>`<div class="switch-row"><span><strong>${label}</strong><small>画面上部のテロップに表示する情報</small></span>${switchHtml(`info-${id}`,true,'info-toggle')}</div>`).join('')}</div><div class="notice compact"><strong>表示対象について</strong><span>この設定は上部テロップだけを対象とします。ホームの「今日の営業情報」と「営業情報」ページには設定に関係なく情報を表示します。</span></div></div>`;}
 function switchHtml(id,checked,className=''){return `<label class="switch"><input id="${id}" class="${className}" type="checkbox" ${checked?'checked':''} aria-label="表示をON・OFF"><span></span></label>`;}
 function displaySettingsHtml(){return `<div class="settings-grid display-settings"><label class="setting-field">文字サイズ<select id="font-size-setting"><option value="standard" selected>標準</option><option value="large">大きめ</option><option value="xlarge">特大</option></select><small>選択すると、この画面を含むアプリ全体に試しに反映します。</small></label><label class="setting-field">表示テーマ<select id="theme-setting"><option value="light" selected>ライト</option><option value="dark">ダーク</option></select><small>選択すると、ライト・ダーク表示を試せます。</small></label></div>`;}
 function dataSettingsHtml(){return `<div class="data-setting-list"><article><div><h3>1．データの引き継ぎ</h3><p>スマホの故障や機種変更に備えて、日報や売上データを安全に保管します。</p><small>将来は利用者自身のGoogle DriveやiCloud等を利用する構想です。日報・レシート写真は対象外です。</small></div><button type="button" class="button secondary" data-unavailable="データの引き継ぎ">設定する（未実装）</button></article><article><div><h3>2．データを書き出す（CSV）</h3><p>日報や売上の記録を、Excelなどで確認できるファイルとして保存します。</p></div><button type="button" class="button secondary" data-unavailable="CSV出力">書き出す（未実装）</button></article><article class="danger-zone"><div><h3>3．すべての日報データを削除</h3><p>日報、売上記録、分析に使用する過去データをすべて削除する操作です。</p><small>試作品では実データを削除しません。</small></div><button type="button" class="button danger-button" id="start-delete-flow">削除の確認へ</button></article></div>`;}
@@ -143,6 +221,17 @@ function bindPayrollSettings(){
   document.getElementById('rate-patterns')?.addEventListener('click',e=>{const remove=e.target.closest('.remove-rate');if(remove){remove.closest('.rate-pattern').remove();renumberRatePatterns();}});
 }
 function renumberRatePatterns(){document.querySelectorAll('.rate-pattern .pattern-number').forEach((el,i)=>el.textContent=i+1);}
+function bindTrafficAreaSettings(){
+  const prefecture=document.getElementById('prefecture'),area=document.getElementById('traffic-area'),help=document.getElementById('traffic-area-help');if(!prefecture||!area||!help)return;
+  prefecture.addEventListener('change',()=>{
+    const selected=prefecture.value,areas=trafficAreasByPrefecture[selected];
+    area.value='';
+    if(!selected){area.innerHTML='<option value="">営業地域を選択してください</option>';area.disabled=true;help.textContent='営業地域を選択すると、登録済みの交通圏候補を表示します。';return;}
+    if(!areas){area.innerHTML='<option value="">この地域の交通圏データは準備中です</option>';area.disabled=true;help.textContent='正式な公的資料を確認後に追加します。未確認の交通圏は選択できません。';return;}
+    area.innerHTML=`<option value="">交通圏を選択</option>${areas.map(item=>`<option value="${item.value}">${item.label}（仮データ）</option>`).join('')}`;
+    area.disabled=false;help.textContent='福岡県の候補はUI確認用の仮データです。正式な全国交通圏マスターではありません。';
+  });
+}
 function bindSecretSettings(){
   const selects=[...document.querySelectorAll('.secret-question')];
   function syncQuestions(){const selected=selects.map(s=>s.value).filter(Boolean);selects.forEach(select=>[...select.options].forEach(option=>{option.disabled=Boolean(option.value&&option.value!==select.value&&selected.includes(option.value));}));}
@@ -174,4 +263,4 @@ function setTicker(show){document.getElementById('ticker').classList.toggle('hid
 document.getElementById('ticker-close').onclick=()=>setTicker(false);
 function showToast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove('show'),3200);}
 
-renderReports();renderBars();renderChart();renderIntel();renderUnifiedSettings();
+renderHomeRecommendations();renderReports();renderBars();renderChart();renderIntel();renderUnifiedSettings();

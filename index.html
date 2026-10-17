@@ -51,19 +51,22 @@
 
       <main id="main-content" tabindex="-1">
         <section class="view active" id="view-home" data-title="ホーム" data-eyebrow="TODAY'S OVERVIEW">
-          <div class="hero-grid">
-            <article class="hero-card dark-card compact-hero">
-              <div class="section-heading"><div><span class="overline">TODAY'S GUIDE</span><h2>今日のおすすめ営業情報</h2></div><span class="status-chip sample">サンプル</span></div>
-              <div class="demand-focus"><span class="time">19:00–21:00</span><strong>博多駅・天神エリア</strong><p>イベント終了と到着便が重なる想定です。参考情報としてご利用ください。</p></div>
-              <div class="hero-actions"><button class="button light" data-view="intelligence">営業情報を見る</button><span>外部データ未接続</span></div>
-            </article>
-            <article class="hero-card accent-card compact-hero">
-              <div class="section-heading"><div><span class="overline">HIGH FARE AREAS</span><h2>高額運賃が期待できる場所</h2></div><span class="status-chip sample">参考</span></div>
-              <div class="area-rank"><span>20時台</span><div><strong>福岡空港 周辺</strong><small>金曜日に郊外方面の利用が増える架空傾向</small></div></div>
-              <div class="area-rank"><span>22時台</span><div><strong>中洲・天神</strong><small>イベント日に長距離利用が増える架空傾向</small></div></div>
-              <button class="text-link" data-view="analytics">分析画面で詳しく見る →</button>
-            </article>
-          </div>
+          <button class="report-cta" id="home-new-report" type="button" aria-label="日報を登録">
+            <span class="report-cta-icon" aria-hidden="true">▤</span>
+            <strong id="home-report-title">日報を登録</strong>
+            <span class="report-cta-action" aria-hidden="true">＋ <b>→</b></span>
+          </button>
+
+          <section class="recommendation-section content-section" aria-labelledby="recommendation-title">
+            <div class="section-heading"><div><span class="overline">TODAY'S SALES INFO</span><h2 id="recommendation-title">今日の営業情報</h2></div><span class="status-chip sample">すべて架空のサンプル</span></div>
+            <div class="recommendation-carousel" id="recommendation-carousel" role="region" aria-roledescription="カルーセル" aria-label="今日の営業情報" tabindex="0">
+              <div class="recommendation-viewport"><div class="recommendation-track" id="recommendation-track"></div></div>
+              <div class="recommendation-controls" id="recommendation-controls">
+                <div class="carousel-dots" id="recommendation-dots" aria-label="営業情報のページ選択"></div>
+              </div>
+              <p class="sr-only" id="recommendation-status" aria-live="polite"></p>
+            </div>
+          </section>
 
           <section class="content-section">
               <div class="section-heading"><div><span class="overline">MONTHLY SALES</span><h2>今月の売上</h2></div><span class="sample-pill">サンプル数値</span></div>
@@ -86,7 +89,6 @@
             </section>
             <section class="panel quick-panel">
               <div class="section-heading"><div><span class="overline">QUICK ACTIONS</span><h2>よく使う操作</h2></div></div>
-              <button class="quick-action" id="home-new-report"><span class="quick-icon">＋</span><span><strong>日報を登録</strong><small>本日の営業記録を入力</small></span><b>→</b></button>
               <button class="quick-action" data-view="analytics"><span class="quick-icon">⌁</span><span><strong>営業分析を見る</strong><small>曜日・時間帯・エリア別</small></span><b>→</b></button>
             </section>
           </div>
