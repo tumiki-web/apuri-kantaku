@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="タクシー乗務員向け営業支援アプリのUI試作品">
   <title>タクシー営業支援｜UI試作品</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    try {
+      const preferences = JSON.parse(localStorage.getItem('taxiDailyUiPreferencesV1') || '{}');
+      if (preferences.hideAmounts === true) document.documentElement.dataset.amountsHidden = 'true';
+    } catch (error) {
+      /* 保存データを読めない場合は既定の表示状態を使用します。 */
+    }
+  </script>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -68,13 +77,15 @@
             </div>
           </section>
 
-          <section class="content-section">
-              <div class="section-heading"><div><span class="overline">MONTHLY SALES</span><h2>今月の売上</h2></div><span class="sample-pill">サンプル数値</span></div>
-            <div class="metric-grid four">
-              <article class="metric-card"><span>今月の売上</span><strong>¥684,200</strong><small class="positive">前月比 +6.8%（サンプル）</small></article>
+          <section class="content-section" aria-labelledby="monthly-sales-title">
+            <div class="section-heading monthly-sales-heading"><div><span class="overline">MONTHLY SALES</span><h2 id="monthly-sales-title">今月の売上</h2></div><div class="monthly-sales-actions"><span class="sample-pill">税込・サンプル数値</span><label class="amount-display-control" for="amount-visibility-toggle"><span>金額を表示</span><span class="switch"><input id="amount-visibility-toggle" type="checkbox" checked aria-label="金額を表示"><span aria-hidden="true"></span></span></label></div></div>
+            <div class="metric-grid home-sales-grid bonus-off" id="home-sales-grid">
+              <article class="metric-card"><span>今月の売上</span><strong data-private-amount>¥684,200</strong><small class="positive">前月比 +6.8%（サンプル）</small></article>
               <article class="metric-card"><span>出勤日数</span><strong>12<em>日</em></strong><small>予定 20日（サンプル）</small></article>
-              <article class="metric-card"><span>1勤務平均</span><strong>¥57,017</strong><small>正式計算ではありません</small></article>
+              <article class="metric-card"><span>1勤務平均</span><strong data-private-amount>¥57,017</strong><small>正式計算ではありません</small></article>
               <article class="metric-card"><span>乗車回数</span><strong>286<em>回</em></strong><small>平均 23.8回／勤務</small></article>
+              <article class="metric-card salary-card"><span>今月の給与</span><strong id="home-salary-value">未計算</strong><small id="home-salary-note">給与設定を確認してください</small></article>
+              <button class="metric-card bonus-summary-card hidden" id="home-bonus-card" type="button" aria-label="夏季ボーナスの詳細を開く"><span>夏季ボーナス</span><strong data-private-amount>¥150,000</strong><small>UI確認用・架空サンプル</small><span class="bonus-progress">出勤：あと15日</span><span class="bonus-progress">売上：あと <span class="inline-private-amount" data-private-amount>20万円</span></span><b>詳細を見る →</b></button>
             </div>
           </section>
 
@@ -163,7 +174,7 @@
         </section>
 
         <section class="view" id="view-settings" data-title="設定" data-eyebrow="APP SETTINGS">
-          <div class="notice warning"><strong>設定UIの試作品</strong><span>変更内容は保存されず、計算・分析・データ管理には反映されません。</span></div>
+          <div class="notice warning"><strong>設定UIの試作品</strong><span>ボーナス設定のみこの端末内に保存されます。その他の変更は保存されず、正式な計算・分析・データ管理には反映されません。</span></div>
           <section class="settings-accordion" id="settings-accordion" aria-label="設定項目"></section>
         </section>
       </main>
