@@ -28,8 +28,8 @@
         <button class="nav-item active" data-view="home" aria-current="page"><span aria-hidden="true">⌂</span>ホーム</button>
         <button class="nav-item" data-view="reports"><span aria-hidden="true">▤</span>日報</button>
         <button class="nav-item" data-view="sales"><span aria-hidden="true">￥</span>売上</button>
-        <button class="nav-item" data-view="analytics"><span aria-hidden="true">⌁</span>分析</button>
-        <button class="nav-item" data-view="intelligence"><span aria-hidden="true">◉</span>営業情報</button>
+        <button class="nav-item" data-view="analytics" data-feature-nav="analytics"><span aria-hidden="true">⌁</span>分析</button>
+        <button class="nav-item" data-view="intelligence" data-feature-nav="intelligence"><span aria-hidden="true">◉</span>営業情報</button>
       </nav>
       <div class="sidebar-bottom">
         <button class="nav-item" data-view="settings"><span aria-hidden="true">⚙</span>設定</button>
@@ -63,10 +63,12 @@
           <button class="report-cta" id="home-new-report" type="button" aria-label="日報を登録">
             <span class="report-cta-icon" aria-hidden="true">▤</span>
             <strong id="home-report-title">日報を登録</strong>
+            <span class="report-cta-description">日報やレシートを撮影して、売上・給与をかんたん管理。</span>
             <span class="report-cta-action" aria-hidden="true">＋ <b>→</b></span>
+            <span class="report-cta-expanded-action" aria-hidden="true">日報を登録する <b>→</b></span>
           </button>
 
-          <section class="recommendation-section content-section" aria-labelledby="recommendation-title">
+          <section class="recommendation-section content-section" id="home-sales-information" aria-labelledby="recommendation-title">
             <div class="section-heading"><div><span class="overline">TODAY'S SALES INFO</span><h2 id="recommendation-title">今日の営業情報</h2></div><span class="status-chip sample">すべて架空のサンプル</span></div>
             <div class="recommendation-carousel" id="recommendation-carousel" role="region" aria-roledescription="カルーセル" aria-label="今日の営業情報" tabindex="0">
               <div class="recommendation-viewport"><div class="recommendation-track" id="recommendation-track"></div></div>
@@ -80,29 +82,23 @@
           <section class="content-section" aria-labelledby="monthly-sales-title">
             <div class="section-heading monthly-sales-heading"><div><span class="overline">MONTHLY SALES</span><h2 id="monthly-sales-title">今月の売上</h2></div><div class="monthly-sales-actions"><span class="sample-pill">税込・サンプル数値</span><label class="amount-display-control" for="amount-visibility-toggle"><span>金額を表示</span><span class="switch"><input id="amount-visibility-toggle" type="checkbox" checked aria-label="金額を表示"><span aria-hidden="true"></span></span></label></div></div>
             <div class="metric-grid home-sales-grid bonus-off" id="home-sales-grid">
-              <article class="metric-card"><span>今月の売上</span><strong data-private-amount>¥684,200</strong><small class="positive">前月比 +6.8%（サンプル）</small></article>
+              <article class="metric-card"><span>今月の売上（税込）</span><strong id="home-gross-sales" data-private-amount>¥684,200</strong><small class="home-net-sales">税抜売上：<span id="home-net-sales" data-private-amount>—</span></small></article>
               <article class="metric-card"><span>出勤日数</span><strong>12<em>日</em></strong><small>予定 20日（サンプル）</small></article>
               <article class="metric-card"><span>1勤務平均</span><strong data-private-amount>¥57,017</strong><small>正式計算ではありません</small></article>
               <article class="metric-card"><span>乗車回数</span><strong>286<em>回</em></strong><small>平均 23.8回／勤務</small></article>
               <article class="metric-card salary-card"><span>今月の給与</span><strong id="home-salary-value">未計算</strong><small id="home-salary-note">給与設定を確認してください</small></article>
-              <button class="metric-card bonus-summary-card hidden" id="home-bonus-card" type="button" aria-label="夏季ボーナスの詳細を開く"><span>夏季ボーナス</span><strong data-private-amount>¥150,000</strong><small>UI確認用・架空サンプル</small><span class="bonus-progress">出勤：あと15日</span><span class="bonus-progress">売上：あと <span class="inline-private-amount" data-private-amount>20万円</span></span><b>詳細を見る →</b></button>
+              <button class="metric-card bonus-summary-card hidden" id="home-bonus-card" type="button" aria-label="夏季ボーナスの詳細を開く"><span>夏季ボーナス</span><strong data-private-amount>¥150,000</strong><span class="bonus-progress">出勤：あと15日</span><span class="bonus-progress">売上：あと <span class="inline-private-amount" data-private-amount>20万円</span></span></button>
             </div>
           </section>
 
-          <div class="split-grid">
-            <section class="panel">
+          <section class="panel content-section" id="home-schedule">
               <div class="section-heading"><div><span class="overline">TODAY'S SCHEDULE</span><h2>今日の予定一覧</h2></div><button class="text-link" data-view="intelligence">すべて見る</button></div>
               <div class="timeline-list">
                 <div class="timeline-item"><time>17:40</time><i class="dot blue"></i><div><strong>航空便到着（架空）</strong><p>国内線 3便・到着人数はサンプル</p></div></div>
                 <div class="timeline-item"><time>18:30</time><i class="dot orange"></i><div><strong>イベント終了予定（架空）</strong><p>マリンアリーナ・約8,000人のサンプル</p></div></div>
                 <div class="timeline-item"><time>20:05</time><i class="dot green"></i><div><strong>新幹線到着（架空）</strong><p>博多駅・利用者数は未接続</p></div></div>
               </div>
-            </section>
-            <section class="panel quick-panel">
-              <div class="section-heading"><div><span class="overline">QUICK ACTIONS</span><h2>よく使う操作</h2></div></div>
-              <button class="quick-action" data-view="analytics"><span class="quick-icon">⌁</span><span><strong>営業分析を見る</strong><small>曜日・時間帯・エリア別</small></span><b>→</b></button>
-            </section>
-          </div>
+          </section>
         </section>
 
         <section class="view" id="view-reports" data-title="日報管理" data-eyebrow="DAILY REPORTS">
@@ -174,13 +170,13 @@
         </section>
 
         <section class="view" id="view-settings" data-title="設定" data-eyebrow="APP SETTINGS">
-          <div class="notice warning"><strong>設定UIの試作品</strong><span>ボーナス設定のみこの端末内に保存されます。その他の変更は保存されず、正式な計算・分析・データ管理には反映されません。</span></div>
+          <div class="notice warning"><strong>設定UIの試作品</strong><span>入力した設定は、画面下部の「変更を保存する」を押したときにこの端末内へ保存・反映されます。データ管理などの単発操作は対象外です。</span></div>
           <section class="settings-accordion" id="settings-accordion" aria-label="設定項目"></section>
         </section>
       </main>
 
       <nav class="bottom-nav" aria-label="モバイルナビゲーション">
-        <button class="active" data-view="home"><span>⌂</span>ホーム</button><button data-view="reports"><span>▤</span>日報</button><button data-view="sales"><span>￥</span>売上</button><button data-view="analytics"><span>⌁</span>分析</button><button data-view="intelligence"><span>◉</span>営業情報</button>
+        <button class="active" data-view="home"><span>⌂</span>ホーム</button><button data-view="reports"><span>▤</span>日報</button><button data-view="sales"><span>￥</span>売上</button><button data-view="analytics" data-feature-nav="analytics"><span>⌁</span>分析</button><button data-view="intelligence" data-feature-nav="intelligence"><span>◉</span>営業情報</button>
       </nav>
     </div>
   </div>
@@ -199,6 +195,8 @@
 
   <div class="modal" id="detail-modal" hidden><div class="modal-backdrop" data-close-modal></div><section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="detail-title"><header><div><span class="overline">DETAIL</span><h2 id="detail-title">詳細</h2><p class="modal-subtitle hidden" id="detail-date"></p></div><button class="icon-button" data-close-modal aria-label="閉じる">×</button></header><div class="modal-body" id="detail-content"></div></section></div>
   <div class="modal" id="delete-modal" hidden><div class="modal-backdrop" data-close-modal></div><section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"><header><div><span class="overline">DELETE CONFIRMATION</span><h2 id="delete-modal-title">削除の確認</h2></div><button class="icon-button" data-close-modal aria-label="閉じる">×</button></header><div class="modal-body" id="delete-modal-content"></div></section></div>
+  <div class="modal" id="settings-leave-modal" hidden><div class="modal-backdrop" data-settings-stay></div><section class="modal-dialog settings-leave-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-leave-title"><header><div><span class="overline">UNSAVED CHANGES</span><h2 id="settings-leave-title">変更した設定が保存されていません</h2></div><button class="icon-button" data-settings-stay aria-label="設定画面に戻る">×</button></header><div class="modal-body"><p>移動する前に、変更内容の扱いを選んでください。</p><div class="modal-actions settings-leave-actions"><button type="button" class="button primary" id="save-and-leave">保存して移動する</button><button type="button" class="button secondary" id="discard-and-leave">保存せず移動する</button><button type="button" class="button ghost" data-settings-stay>戻る</button></div></div></section></div>
+  <div class="settings-save-bar" id="settings-save-bar" role="region" aria-label="設定の保存" aria-hidden="true"><button type="button" class="button primary" id="save-all-settings" tabindex="-1">変更を保存する</button></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="js/app.js"></script>
 </body>
