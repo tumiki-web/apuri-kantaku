@@ -69,7 +69,7 @@
           </button>
 
           <section class="recommendation-section content-section" id="home-sales-information" aria-labelledby="recommendation-title">
-            <div class="section-heading"><div><span class="overline">TODAY'S SALES INFO</span><h2 id="recommendation-title">今日の営業情報</h2></div><span class="status-chip sample">すべて架空のサンプル</span></div>
+            <div class="section-heading home-card-heading"><div><span class="overline">TODAY'S SALES INFO</span><h2 id="recommendation-title">今日の営業情報</h2></div><div class="home-heading-actions"><span class="status-chip sample">すべて架空のサンプル</span><button class="home-detail-link" type="button" data-view="intelligence">詳しく見る <span aria-hidden="true">→</span></button></div></div>
             <div class="recommendation-carousel" id="recommendation-carousel" role="region" aria-roledescription="カルーセル" aria-label="今日の営業情報" tabindex="0">
               <div class="recommendation-viewport"><div class="recommendation-track" id="recommendation-track"></div></div>
               <div class="recommendation-controls" id="recommendation-controls">
@@ -80,7 +80,7 @@
           </section>
 
           <section class="content-section" aria-labelledby="monthly-sales-title">
-            <div class="section-heading monthly-sales-heading"><div><span class="overline">MONTHLY SALES</span><h2 id="monthly-sales-title">今月の売上</h2></div><div class="monthly-sales-actions"><span class="sample-pill">サンプルデータ表示中</span><label class="amount-display-control" for="amount-visibility-toggle"><span>金額を表示</span><span class="switch"><input id="amount-visibility-toggle" type="checkbox" checked aria-label="金額を表示"><span aria-hidden="true"></span></span></label></div></div>
+            <div class="section-heading monthly-sales-heading home-card-heading"><div><span class="overline">MONTHLY SALES</span><div class="home-title-row"><h2 id="monthly-sales-title">今月の売上</h2><span class="sample-pill" data-sample-display>サンプルデータ表示中</span></div></div><div class="home-heading-actions monthly-sales-actions"><label class="amount-display-control" for="amount-visibility-toggle"><span>金額を表示</span><span class="switch"><input id="amount-visibility-toggle" type="checkbox" checked aria-label="金額を表示"><span aria-hidden="true"></span></span></label></div></div>
             <div class="metric-grid home-sales-grid bonus-off" id="home-sales-grid">
               <article class="metric-card"><span>今月の売上（税込）</span><strong id="home-gross-sales" data-private-amount>¥684,200</strong><small class="home-net-sales">税抜売上：<span id="home-net-sales" data-private-amount>—</span></small></article>
               <article class="metric-card"><span>出勤日数</span><strong>12<em>日</em></strong><small>予定 20日</small></article>
@@ -89,15 +89,22 @@
               <article class="metric-card salary-card"><span>今月の給与</span><strong id="home-salary-value">未計算</strong><small id="home-salary-note">給与設定を確認してください</small></article>
               <button class="metric-card bonus-summary-card hidden" id="home-bonus-card" type="button" aria-label="夏季ボーナスの詳細を開く"><span>夏季ボーナス</span><strong data-private-amount>¥0</strong><small class="bonus-estimate-label">現時点の見込額</small><span class="bonus-progress" id="home-bonus-duty-progress"></span><span class="bonus-progress" id="home-bonus-rate-progress"></span></button>
             </div>
+            <div class="home-sales-detail-row"><button class="home-detail-link" type="button" data-view="sales">詳しく見る <span aria-hidden="true">→</span></button></div>
           </section>
 
-          <section class="panel content-section" id="home-schedule">
-              <div class="section-heading"><div><span class="overline">TODAY'S SCHEDULE</span><h2>今日の予定一覧</h2></div><button class="text-link" data-view="intelligence">すべて見る</button></div>
-              <div class="timeline-list">
-                <div class="timeline-item"><time>17:40</time><i class="dot blue"></i><div><strong>航空便到着（架空）</strong><p>国内線 3便・到着人数はサンプル</p></div></div>
-                <div class="timeline-item"><time>18:30</time><i class="dot orange"></i><div><strong>イベント終了予定（架空）</strong><p>マリンアリーナ・約8,000人のサンプル</p></div></div>
-                <div class="timeline-item"><time>20:05</time><i class="dot green"></i><div><strong>新幹線到着（架空）</strong><p>博多駅・利用者数は未接続</p></div></div>
-              </div>
+          <section class="panel content-section home-analysis-card" id="home-analysis-summary" aria-labelledby="home-analysis-title">
+            <div class="section-heading home-card-heading"><div><span class="overline">TODAY'S ANALYSIS</span><div class="home-title-row"><h2 id="home-analysis-title">今日の営業分析</h2><span class="status-chip sample" id="home-analysis-sample-badge">サンプルデータ</span></div></div><button class="home-detail-link" type="button" data-view="analytics">詳しく見る <span aria-hidden="true">→</span></button></div>
+            <div class="home-analysis-chart" id="home-analysis-chart" aria-label="時間帯別の売上と乗車回数のサンプルグラフ">
+              <div class="home-analysis-legend"><span class="sales">売上</span><span class="rides">乗車回数</span></div>
+              <div class="home-analysis-chart-scroll"><svg id="home-analysis-svg" viewBox="0 0 1200 220" role="img" aria-label="0時から23時までの売上と乗車回数の相対推移"></svg></div>
+              <p class="home-analysis-detail" id="home-analysis-detail" aria-live="polite"></p>
+              <div class="home-analysis-empty hidden" id="home-analysis-empty"><strong>分析に必要な日報データを蓄積中です</strong><p>日報を登録すると、時間帯別の売上や乗車回数の傾向を確認できるようになります。</p></div>
+            </div>
+            <section class="home-analysis-ranking" aria-labelledby="high-fare-ranking-title">
+              <div class="home-analysis-ranking-heading"><h3 id="high-fare-ranking-title">高額運賃が多い乗車地</h3><span>サンプルデータ</span></div>
+              <ol class="home-analysis-ranking-list" id="home-analysis-ranking-list"></ol>
+              <div class="home-analysis-ranking-empty hidden" id="home-analysis-ranking-empty">表示できる分析データがまだありません</div>
+            </section>
           </section>
         </section>
 
