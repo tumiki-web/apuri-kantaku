@@ -218,11 +218,10 @@ const FORMAT_CAPTURE_STEPS=[
   {key:'back',label:'日報（裏）',title:'次に日報（裏）を撮影してください',description:'裏面に記入欄がある場合は、用紙全体を撮影してください。',optional:true},
   {key:'receipt',label:'日計レシート',title:'最後に日計レシートを撮影してください',description:'細長いレシートの上端から下端までが写るように撮影してください。'}
 ];
-const formatCaptureState={source:null,step:0,stream:null,pending:null,images:{front:null,back:null,receipt:null},backSkipped:false,cameraError:'',session:0};
+const formatCaptureState={source:null,step:0,pending:null,images:{front:null,back:null,receipt:null},backSkipped:false};
 
 function openFormatCapture(source='external'){
   resetFormatCaptureState();
-  formatCaptureState.session++;
   formatCaptureState.source=source;
   const modal=document.getElementById('format-capture-modal');
   modal.hidden=false;document.body.style.overflow='hidden';lastFocus=document.activeElement;
@@ -232,64 +231,45 @@ function openFormatCapture(source='external'){
 window.openFormatCapture=openFormatCapture;
 
 function resetFormatCaptureState(){
-  stopFormatCaptureCamera();
   revokeFormatCaptureImage(formatCaptureState.pending);
   Object.values(formatCaptureState.images).forEach(revokeFormatCaptureImage);
-  formatCaptureState.step=0;formatCaptureState.pending=null;formatCaptureState.images={front:null,back:null,receipt:null};formatCaptureState.backSkipped=false;formatCaptureState.cameraError='';
+  formatCaptureState.step=0;formatCaptureState.pending=null;formatCaptureState.images={front:null,back:null,receipt:null};formatCaptureState.backSkipped=false;
 }
 function revokeFormatCaptureImage(image){if(image?.url)URL.revokeObjectURL(image.url);}
-function stopFormatCaptureCamera(){if(formatCaptureState.stream){formatCaptureState.stream.getTracks().forEach(track=>track.stop());formatCaptureState.stream=null;}const video=document.getElementById('format-camera-video');if(video)video.srcObject=null;}
 function closeFormatCapture(){
   const modal=document.getElementById('format-capture-modal');if(!modal||modal.hidden)return;
-  formatCaptureState.session++;resetFormatCaptureState();modal.hidden=true;document.body.style.overflow='';lastFocus?.focus();
+  resetFormatCaptureState();modal.hidden=true;document.body.style.overflow='';lastFocus?.focus();
 }
 function formatCaptureProgress(){return FORMAT_CAPTURE_STEPS.map((step,index)=>`<li class="${index<formatCaptureState.step?'done':index===formatCaptureState.step?'current':''}"><span>${index<formatCaptureState.step?'✓':index+1}</span><small>${step.label}</small></li>`).join('');}
 function renderFormatCaptureStep(){
-  stopFormatCaptureCamera();revokeFormatCaptureImage(formatCaptureState.pending);formatCaptureState.pending=null;formatCaptureState.cameraError='';
+  revokeFormatCaptureImage(formatCaptureState.pending);formatCaptureState.pending=null;
   const step=FORMAT_CAPTURE_STEPS[formatCaptureState.step],root=document.getElementById('format-capture-body');if(!step||!root)return renderFormatCaptureComplete();
   root.classList.add('capture-active');
-  root.innerHTML=`<div class="format-capture-compact-progress" role="status" aria-label="撮影の進行状況 ${formatCaptureState.step+1}/3 ${step.label}"><strong>${formatCaptureState.step+1}/3</strong><span>｜${step.label}</span></div><section class="format-capture-step"><div class="format-step-heading"><h3>${step.title}</h3><p>${step.description}</p></div><div class="camera-stage"><video id="format-camera-video" autoplay muted playsinline aria-label="カメラ映像"></video><div class="camera-loading" id="camera-loading">カメラを準備しています…</div></div><button type="button" class="button primary capture-shutter" id="capture-format-photo" disabled><span aria-hidden="true">●</span> 撮影する</button><div class="format-file-controls" aria-label="端末内の画像から登録"><button type="button" class="button secondary" id="select-format-file">端末内の画像を選択</button><input class="sr-only" id="format-file-input" type="file" accept="image/*"><small>カメラを利用できない場合も選択できます</small></div><p class="camera-message" id="camera-message" role="status" aria-live="polite">カメラの使用を許可してください。HTTPS環境またはlocalhostで利用できます。</p>${step.optional?'<div class="format-capture-actions"><button type="button" class="button secondary" id="skip-format-back">裏面はありません・スキップ</button></div>':''}</section>`;
-  bindFormatCaptureStep(step);startFormatCaptureCamera();
+  root.innerHTML=`<div class="format-capture-compact-progress" role="status" aria-label="撮影の進行状況 ${formatCaptureState.step+1}/3 ${step.label}"><strong>${formatCaptureState.step+1}/3</strong><span>｜${step.label}</span></div><section class="format-capture-step"><div class="format-step-heading"><h3>${step.title}</h3><p>${step.description}</p></div><div class="format-method-panel"><div class="format-method-actions"><button type="button" class="button primary format-method-option" id="open-format-camera"><span class="format-method-icon" aria-hidden="true">📷</span><span>カメラで撮影</span></button><button type="button" class="button secondary format-method-option" id="open-format-library"><span class="format-method-icon" aria-hidden="true">▧</span><span>写真から選択</span></button></div><input class="sr-only" id="format-camera-input" type="file" accept="image/*" capture="environment"><input class="sr-only" id="format-library-input" type="file" accept="image/*"><p class="format-method-note">端末の標準カメラまたは写真選択画面を使用します。画像の切り抜きや圧縮は行いません。</p>${step.optional?'<button type="button" class="button secondary" id="skip-format-back">裏面はありません・スキップ</button>':''}<button type="button" class="button ghost format-method-cancel" data-close-format-capture>キャンセル</button></div></section>`;
+  bindFormatCaptureStep(step);
 }
 function bindFormatCaptureStep(step){
-  document.getElementById('capture-format-photo')?.addEventListener('click',captureFormatPhoto);
   document.getElementById('skip-format-back')?.addEventListener('click',()=>{revokeFormatCaptureImage(formatCaptureState.images.back);formatCaptureState.images.back=null;formatCaptureState.backSkipped=true;formatCaptureState.step++;renderFormatCaptureStep();});
-  const fileInput=document.getElementById('format-file-input');
-  document.getElementById('select-format-file')?.addEventListener('click',()=>fileInput?.click());
-  fileInput?.addEventListener('change',event=>{const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){showToast('画像ファイルを選択してください');return;}setFormatCapturePending(file,step,'file');});
-}
-async function startFormatCaptureCamera(){
-  const message=document.getElementById('camera-message'),loading=document.getElementById('camera-loading'),shutter=document.getElementById('capture-format-photo'),video=document.getElementById('format-camera-video');
-  const session=formatCaptureState.session;
-  if(!navigator.mediaDevices?.getUserMedia){if(loading)loading.textContent='このブラウザではカメラを利用できません';if(message)message.textContent='下の「端末内の画像を選択」をご利用ください。';return;}
-  if(!window.isSecureContext){if(loading)loading.textContent='安全な接続が必要です';if(message)message.textContent='カメラはHTTPS環境またはlocalhostで利用できます。画像選択は引き続き利用できます。';return;}
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1440}}});
-    if(session!==formatCaptureState.session||document.getElementById('format-camera-video')!==video||!document.getElementById('format-capture-modal')||document.getElementById('format-capture-modal').hidden){stream.getTracks().forEach(track=>track.stop());return;}
-    formatCaptureState.stream=stream;video.srcObject=stream;await video.play();if(loading)loading.hidden=true;if(shutter)shutter.disabled=false;if(message)message.textContent='表示中のカメラ映像全体を撮影します。自動切り抜きは行いません。';
-  }catch(error){
-    formatCaptureState.cameraError=error?.name||'CameraError';if(loading)loading.textContent='カメラを開始できませんでした';if(message)message.textContent=error?.name==='NotAllowedError'?'カメラの使用が許可されませんでした。端末の設定を確認するか、画像を選択してください。':'カメラを利用できません。別のカメラを閉じるか、端末内の画像を選択してください。';
-  }
-}
-function captureFormatPhoto(){
-  const video=document.getElementById('format-camera-video');if(!video?.videoWidth||!video.videoHeight){showToast('カメラ映像の準備ができていません');return;}
-  const session=formatCaptureState.session;
-  const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
-  canvas.toBlob(blob=>{if(session!==formatCaptureState.session)return;if(!blob){showToast('写真を作成できませんでした');return;}setFormatCapturePending(blob,FORMAT_CAPTURE_STEPS[formatCaptureState.step],'camera');},'image/jpeg',.94);
+  const cameraInput=document.getElementById('format-camera-input'),libraryInput=document.getElementById('format-library-input');
+  document.getElementById('open-format-camera')?.addEventListener('click',()=>cameraInput?.click());
+  document.getElementById('open-format-library')?.addEventListener('click',()=>libraryInput?.click());
+  const handleImage=origin=>event=>{const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){showToast('画像ファイルを選択してください');return;}setFormatCapturePending(file,step,origin);};
+  cameraInput?.addEventListener('change',handleImage('camera'));
+  libraryInput?.addEventListener('change',handleImage('library'));
 }
 function setFormatCapturePending(blob,step,origin){
-  stopFormatCaptureCamera();revokeFormatCaptureImage(formatCaptureState.pending);formatCaptureState.pending={blob,url:URL.createObjectURL(blob),origin};renderFormatCapturePreview(step);
+  revokeFormatCaptureImage(formatCaptureState.pending);formatCaptureState.pending={blob,url:URL.createObjectURL(blob),origin};renderFormatCapturePreview(step);
 }
 function renderFormatCapturePreview(step){
   const root=document.getElementById('format-capture-body'),pending=formatCaptureState.pending;if(!root||!pending)return;
   root.classList.remove('capture-active');
-  root.innerHTML=`<ol class="format-capture-progress" aria-label="撮影の進行状況">${formatCaptureProgress()}</ol><section class="format-preview-step"><div class="format-step-heading"><span class="status-chip">${step.label}の確認</span><h3>画像が切れていないか確認してください</h3><p>用紙全体と文字が確認できる写真を使用してください。</p></div><div class="format-image-viewport"><img src="${pending.url}" alt="${step.label}の撮影プレビュー" id="format-preview-image"></div><button type="button" class="text-link format-zoom-toggle" id="format-zoom-toggle" aria-pressed="false">画像を拡大する</button><div class="format-capture-actions"><button type="button" class="button primary" id="accept-format-photo">この写真で進む</button><button type="button" class="button secondary" id="retake-format-photo">撮り直す</button></div><p class="temporary-image-note">この画像は一時表示です。書式として保存・登録はされません。</p></section>`;
+  root.innerHTML=`<ol class="format-capture-progress" aria-label="撮影の進行状況">${formatCaptureProgress()}</ol><section class="format-preview-step"><div class="format-step-heading"><span class="status-chip">${step.label}の確認</span><h3>画像が切れていないか確認してください</h3><p>用紙全体と文字が確認できる写真を使用してください。</p></div><div class="format-image-viewport"><img src="${pending.url}" alt="${step.label}の撮影プレビュー" id="format-preview-image"></div><button type="button" class="text-link format-zoom-toggle" id="format-zoom-toggle" aria-pressed="false">画像を拡大する</button><div class="format-capture-actions"><button type="button" class="button primary" id="accept-format-photo">この写真で進む</button><button type="button" class="button secondary" id="retake-format-photo">撮り直す・選び直す</button></div><p class="temporary-image-note">この画像は一時表示です。書式として保存・登録はされません。</p></section>`;
   document.getElementById('format-zoom-toggle').addEventListener('click',event=>{const image=document.getElementById('format-preview-image'),pressed=event.currentTarget.getAttribute('aria-pressed')==='true';image.classList.toggle('zoomed',!pressed);event.currentTarget.setAttribute('aria-pressed',String(!pressed));event.currentTarget.textContent=pressed?'画像を拡大する':'全体表示に戻す';});
   document.getElementById('accept-format-photo').addEventListener('click',()=>{const old=formatCaptureState.images[step.key];if(old&&old!==pending)revokeFormatCaptureImage(old);formatCaptureState.images[step.key]=pending;formatCaptureState.pending=null;if(step.key==='back')formatCaptureState.backSkipped=false;formatCaptureState.step++;renderFormatCaptureStep();});
   document.getElementById('retake-format-photo').addEventListener('click',renderFormatCaptureStep);
 }
 function renderFormatCaptureComplete(){
-  stopFormatCaptureCamera();const root=document.getElementById('format-capture-body');if(!root)return;
+  const root=document.getElementById('format-capture-body');if(!root)return;
   root.classList.remove('capture-active');
   const cards=FORMAT_CAPTURE_STEPS.map((step,index)=>{const image=formatCaptureState.images[step.key];return `<article class="format-result-card"><div><span class="format-result-label">${step.label}</span>${image?`<div class="format-result-image"><img src="${image.url}" alt="${step.label}の撮影済み画像"></div>`:'<div class="format-result-empty">未登録</div>'}</div><button type="button" class="button secondary" data-retake-format="${index}">${image?'撮り直す':'撮影する'}</button></article>`;}).join('');
   root.innerHTML=`<ol class="format-capture-progress complete" aria-label="撮影の進行状況">${FORMAT_CAPTURE_STEPS.map(step=>`<li class="done"><span>✓</span><small>${step.label}</small></li>`).join('')}</ol><section class="format-capture-complete"><div class="completion-mark" aria-hidden="true">✓</div><h3>撮影完了</h3><p>撮影した画像を確認してください。OCR解析と書式認識は次の工程で実装します。</p><div class="notice warning"><strong>まだ保存されていません</strong><span>画像はこの画面を閉じるまで一時的に保持されます。書式登録や保存は行っていません。</span></div><div class="format-result-list">${cards}</div><div class="format-capture-actions"><button type="button" class="button primary" data-close-format-capture>確認を終える</button></div></section>`;
